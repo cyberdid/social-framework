@@ -10,3 +10,14 @@ repository-code: https://github.com/cyberdid/social-framework
 license: Apache-2.0
 version: 1.0.0
 date-released: 2026-11-10
+preferred-citation:
+  type: article
+  title: "Social: An Evidence-Grounded Framework for Automated Social Conflict and Information Incident Analysis"
+  authors:
+  - family-names: Pylypenko
+    given-names: Oleksandr
+    orcid: https://orcid.org/0009-0004-9610-9242
+  doi: 10.5281/zenodo.24101594
+  year: 2026
+  publisher:
+    name: Zenodo

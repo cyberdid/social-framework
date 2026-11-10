@@ -4,6 +4,8 @@ Social is a modular Python research system for evidence-aware analysis of social
 
 This repository is the public code release that accompanies the preprint *Social: An Evidence-Grounded Framework for Automated Social Conflict and Information Incident Analysis*.
 
+Preprint DOI (all versions): [10.5281/zenodo.24101594](https://doi.org/10.5281/zenodo.24101594).
+
 ## What this release contains
 
 - `src/`: collectors, snapshot preparation, analysis modules, the evidence ledger, media pipeline and workflow runners.

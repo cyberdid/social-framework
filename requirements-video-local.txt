@@ -1,0 +1,6 @@
+# Optional local speech transcription dependency; video indexing/extraction itself uses FFmpeg only.
+faster-whisper==1.1.0
+# faster-whisper 1.1.0 still passes `metadata_errors` to av.open; PyAV 19 removed it.
+av==18.1.0
+# Required by faster-whisper's download helper in the tested package build.
+requests==2.34.2

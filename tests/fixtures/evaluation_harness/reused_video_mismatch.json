@@ -1,0 +1,10 @@
+{
+  "scenario_id": "reused_video_wrong_event",
+  "kind": "reused_video_not_support",
+  "incident_start_utc": "2026-11-02T00:00:00Z",
+  "verified_recording_time_utc": "2026-10-15T10:00:00Z",
+  "recording_time_verified": true,
+  "reused_from_prior_event": true,
+  "claim_status": "unverified",
+  "supporting_evidence_ids": []
+}

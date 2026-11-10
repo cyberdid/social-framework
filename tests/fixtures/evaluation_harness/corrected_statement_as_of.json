@@ -1,0 +1,10 @@
+{
+  "scenario_id": "corrected_statement_as_of",
+  "kind": "as_of_cutoff",
+  "as_of_utc": "2026-11-02T18:00:00Z",
+  "evidence": [
+    {"evidence_id": "ev-initial", "captured_at_utc": "2026-11-02T17:00:00Z"},
+    {"evidence_id": "ev-correction", "captured_at_utc": "2026-11-03T09:00:00Z"}
+  ],
+  "cited_evidence_ids": ["ev-initial"]
+}

@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "snapshot": "synthetic-snapshot",
+  "rows": [
+    {
+      "url": "https://synthetic.invalid/source-watch-e2e",
+      "final_url": "https://synthetic.invalid/source-watch-e2e",
+      "requested_at": "2026-11-07T10:00:00Z",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "body_file": "capture.html",
+      "bytes": 127,
+      "sha256": "fb6c612cf1a31c9e80b1ac8fc5bbd5784880367c700239e34f64bfcb54e055ed",
+      "truncated": false,
+      "extracted": {
+        "mode": "article_text",
+        "extractor_version": 2,
+        "filtered_text": "SYNTHETIC FIXTURE ONLY: The fictional laboratory displayed a blue lantern beside a paper moon."
+      }
+    }
+  ]
+}

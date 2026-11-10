@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "incident_id": "demo_case_2026",
+  "working_title": "Демонстраційний кейс",
+  "scope": {
+    "description": "Синтетичний приклад контракту, не реальний інцидент",
+    "included": [],
+    "excluded": []
+  },
+  "location_candidates": [],
+  "time_window_utc": ["2026-11-01T00:00:00Z", "2026-11-02T00:00:00Z"],
+  "languages": ["uk", "ru"],
+  "seed_urls": [],
+  "platforms": ["telegram", "web"],
+  "collection_policy": {
+    "public_only": true,
+    "allow_private_sources": false,
+    "access_methods": ["public_api", "public_web"]
+  },
+  "privacy_policy": "local_only_by_default",
+  "allow_external_ai": false,
+  "models": {"text_provider": "disabled", "video_provider": "disabled"},
+  "budgets": {
+    "max_queries_per_claim": 0,
+    "max_new_sources_per_run": 0,
+    "max_video_minutes_to_analyze": 0,
+    "max_cost_usd": null
+  },
+  "as_of_utc": "2026-11-02T00:00:00Z",
+  "report": {"allow_unresolved_sections": true}
+}

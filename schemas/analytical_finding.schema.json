@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/cyberdid/social/blob/main/schemas/analytical_finding.schema.json",
+  "title": "Social AnalyticalFinding v1",
+  "description": "Typed report input. Semantic entailment is outside this schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "finding_id": {"type": "string", "minLength": 1},
+    "kind": {
+      "enum": [
+        "documented_fact", "source_attributed", "supported_within_scope",
+        "refuted_within_scope", "conflicting", "hypothesis", "unresolved",
+        "methodological_limit"
+      ]
+    },
+    "claim_id": {"type": "string", "minLength": 1},
+    "statement": {"type": "string", "minLength": 1},
+    "scope": {"type": "object", "minProperties": 1},
+    "verification_result_id": {"type": ["string", "null"], "minLength": 1},
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["evidence_id", "role"],
+        "properties": {
+          "evidence_id": {"type": "string", "minLength": 1},
+          "role": {"enum": ["supporting", "contradicting", "source_attributed", "context"]}
+        }
+      }
+    },
+    "alternatives": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "incomplete_source_capture", "unknown_source_dependency", "organic_repetition",
+          "platform_visibility_bias", "event_time_uncertainty", "identity_uncertainty"
+        ]
+      }
+    },
+    "limitations": {"type": "array", "maxItems": 0},
+    "limitation_codes": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "incomplete_source_coverage", "nonprobability_sample", "views_not_unique_reach",
+          "no_causal_design", "model_observation_candidate", "unknown_lineage"
+        ]
+      }
+    },
+    "limitation_code": {
+      "enum": [
+        "incomplete_source_coverage", "nonprobability_sample", "views_not_unique_reach",
+        "no_causal_design", "model_observation_candidate", "unknown_lineage"
+      ]
+    },
+    "reason_code": {"enum": ["unverified", "insufficient_evidence", "not_verifiable"]}
+  },
+  "required": ["finding_id", "kind", "evidence_refs"],
+  "allOf": [
+    {
+      "if": {"properties": {"kind": {"enum": ["documented_fact", "source_attributed"]}}, "required": ["kind"]},
+      "then": {
+        "required": ["claim_id", "statement", "scope"],
+        "properties": {
+          "evidence_refs": {"minItems": 1, "items": {"properties": {"role": {"const": "source_attributed"}}}}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"kind": {"enum": ["supported_within_scope", "refuted_within_scope", "conflicting"]}}, "required": ["kind"]},
+      "then": {
+        "required": ["claim_id", "statement", "scope", "verification_result_id"],
+        "properties": {
+          "verification_result_id": {"type": "string", "minLength": 1},
+          "evidence_refs": {"items": {"properties": {"role": {"enum": ["supporting", "contradicting"]}}}}
+        },
+        "allOf": [
+          {
+            "if": {"properties": {"kind": {"const": "supported_within_scope"}}, "required": ["kind"]},
+            "then": {"properties": {"evidence_refs": {"contains": {"properties": {"role": {"const": "supporting"}}, "required": ["role"]}, "minContains": 1}}}
+          },
+          {
+            "if": {"properties": {"kind": {"const": "refuted_within_scope"}}, "required": ["kind"]},
+            "then": {"properties": {"evidence_refs": {"contains": {"properties": {"role": {"const": "contradicting"}}, "required": ["role"]}, "minContains": 1}}}
+          },
+          {
+            "if": {"properties": {"kind": {"const": "conflicting"}}, "required": ["kind"]},
+            "then": {
+              "properties": {
+                "evidence_refs": {
+                  "minItems": 2,
+                  "allOf": [
+                    {"contains": {"properties": {"role": {"const": "supporting"}}, "required": ["role"]}, "minContains": 1},
+                    {"contains": {"properties": {"role": {"const": "contradicting"}}, "required": ["role"]}, "minContains": 1}
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "if": {"properties": {"kind": {"const": "hypothesis"}}, "required": ["kind"]},
+      "then": {"required": ["claim_id", "statement", "scope"], "properties": {"evidence_refs": {"minItems": 1}}}
+    },
+    {
+      "if": {"properties": {"kind": {"enum": ["documented_fact", "source_attributed", "hypothesis", "methodological_limit"]}}, "required": ["kind"]},
+      "then": {
+        "not": {
+          "properties": {"verification_result_id": {"type": "string"}},
+          "required": ["verification_result_id"]
+        }
+      }
+    },
+    {
+      "if": {"properties": {"kind": {"const": "unresolved"}}, "required": ["kind"]},
+      "then": {
+        "required": ["claim_id", "statement", "scope", "verification_result_id", "reason_code"],
+        "properties": {
+          "verification_result_id": {"type": "string", "minLength": 1},
+          "evidence_refs": {"items": {"properties": {"role": {"enum": ["supporting", "contradicting"]}}}}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"kind": {"const": "methodological_limit"}}, "required": ["kind"]},
+      "then": {
+        "required": ["limitation_code"],
+        "not": {
+          "anyOf": [
+            {"required": ["claim_id"]}, {"required": ["statement"]}, {"required": ["scope"]},
+            {"required": ["verification_result_id"]}, {"required": ["reason_code"]},
+            {"required": ["alternatives"]}, {"required": ["limitations"]}, {"required": ["limitation_codes"]}
+          ]
+        }
+      }
+    }
+  ]
+}

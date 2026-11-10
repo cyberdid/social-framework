@@ -1,0 +1,8 @@
+{
+  "scenario_id": "contradictory_testimony",
+  "kind": "contradiction_preserved",
+  "verification_status": "conflicting_evidence",
+  "supporting_evidence_ids": ["ev-support"],
+  "contradicting_evidence_ids": ["ev-conflict"],
+  "available_evidence_ids": ["ev-support", "ev-conflict"]
+}

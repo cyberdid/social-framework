@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cyberdid.github.io/social/schemas/common.schema.json",
+  "title": "Common Social evidence contracts",
+  "$defs": {
+    "utcDateTime": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "(Z|[+]00:00)$",
+      "description": "Timezone-aware UTC ISO-8601 timestamp."
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "reference": {
+      "type": "string",
+      "minLength": 1
+    },
+    "limitations": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["producer", "run_id"],
+      "properties": {
+        "producer": {"type": "string", "minLength": 1},
+        "run_id": {"type": "string", "minLength": 1},
+        "git_commit": {"type": "string", "pattern": "^[a-f0-9]{7,40}$"},
+        "model_id": {"type": ["string", "null"]},
+        "model_version": {"type": ["string", "null"]},
+        "parameters_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    }
+  }
+}

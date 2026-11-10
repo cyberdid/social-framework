@@ -1,0 +1,8 @@
+{
+  "scenario_id": "mass_copy_fanout",
+  "kind": "source_root_fanout",
+  "copy_families": [{"root_id": "root-original-1", "copy_count": 1000}],
+  "reported_independent_roots": 1,
+  "minimum_independent_roots": 2,
+  "verification_status": "insufficient_evidence"
+}

@@ -1,0 +1,53 @@
+{
+  "scenario_id": "known_microcase_timeline",
+  "kind": "timeline_order",
+  "run_context": {
+    "incident_id": "synthetic-street-event",
+    "run_id": "frozen-known-microcase-v1",
+    "as_of_utc": "2026-11-08T00:00:00Z",
+    "git_commit": "abcdef0123456789",
+    "parameters_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "event_mentions": [
+    {
+      "event_mention_id": "disperse",
+      "event_kind": "physical",
+      "predicate": "розійшлися",
+      "actor_entity_ids": ["group-b"],
+      "object_entity_ids": [],
+      "place_id": "place-1",
+      "time": {"kind": "reported_event_time", "earliest_utc": "2026-11-02T17:00:00Z", "latest_utc": "2026-11-02T17:05:00Z", "precision": "five_minute_interval", "raw_value": "близько 19:00 EET", "timezone_basis": "source_locale", "anchor_evidence_ids": ["ev-3"]},
+      "publication_time_utc": "2026-11-02T18:00:00Z",
+      "evidence_ids": ["ev-3"],
+      "cannot_link_event_mention_ids": [],
+      "attributed_relations": []
+    },
+    {
+      "event_mention_id": "arrive",
+      "event_kind": "physical",
+      "predicate": "прибули",
+      "actor_entity_ids": ["group-a"],
+      "object_entity_ids": [],
+      "place_id": "place-1",
+      "time": {"kind": "reported_event_time", "earliest_utc": "2026-11-02T16:00:00Z", "latest_utc": "2026-11-02T16:05:00Z", "precision": "five_minute_interval", "raw_value": "близько 18:00 EET", "timezone_basis": "source_locale", "anchor_evidence_ids": ["ev-1"]},
+      "publication_time_utc": "2026-11-02T16:30:00Z",
+      "evidence_ids": ["ev-1"],
+      "cannot_link_event_mention_ids": [],
+      "attributed_relations": []
+    },
+    {
+      "event_mention_id": "gather",
+      "event_kind": "physical",
+      "predicate": "зібралися",
+      "actor_entity_ids": ["group-b"],
+      "object_entity_ids": [],
+      "place_id": "place-1",
+      "time": {"kind": "reported_event_time", "earliest_utc": "2026-11-02T16:10:00Z", "latest_utc": "2026-11-02T16:15:00Z", "precision": "five_minute_interval", "raw_value": "після 18:00 EET", "timezone_basis": "source_locale", "anchor_evidence_ids": ["ev-2"]},
+      "publication_time_utc": "2026-11-02T16:45:00Z",
+      "evidence_ids": ["ev-2"],
+      "cannot_link_event_mention_ids": [],
+      "attributed_relations": []
+    }
+  ],
+  "expected_order": ["arrive", "gather", "disperse"]
+}

@@ -1,0 +1,8 @@
+{
+  "scenario_id": "missing_corpus_abstention",
+  "kind": "missing_corpus_abstention",
+  "source_access_statuses": ["partial", "not_found", "blocked"],
+  "verification_status": "insufficient_evidence",
+  "supporting_evidence_ids": [],
+  "contradicting_evidence_ids": []
+}

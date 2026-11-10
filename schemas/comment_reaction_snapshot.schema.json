@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cyberdid.github.io/social/schemas/comment_reaction_snapshot.schema.json",
+  "title": "Social comment reaction snapshot v1",
+  "type": "object",
+  "required": [
+    "schema_version", "snapshot_id", "platform", "comment_id",
+    "source_post_id", "thread_id", "parent_comment_id", "author_pseudonym",
+    "published_at_utc", "observed_at_utc", "reaction_state",
+    "reaction_breakdown", "source_snapshot_ref"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "snapshot_id": {"type": "string", "minLength": 1},
+    "platform": {"type": "string", "minLength": 1},
+    "comment_id": {"type": "string", "minLength": 1},
+    "source_post_id": {"type": "string", "minLength": 1},
+    "thread_id": {"type": "string", "minLength": 1},
+    "parent_comment_id": {"type": ["string", "null"], "minLength": 1},
+    "author_pseudonym": {"type": ["string", "null"], "minLength": 1},
+    "published_at_utc": {"anyOf": [{"$ref": "common.schema.json#/$defs/utcDateTime"}, {"type": "null"}]},
+    "observed_at_utc": {"$ref": "common.schema.json#/$defs/utcDateTime"},
+    "reaction_state": {"enum": ["not_reported", "empty", "available", "current_user_excluded"]},
+    "reaction_breakdown": {
+      "oneOf": [
+        {"type": "null"},
+        {"type": "array", "items": {"$ref": "#/$defs/reaction"}}
+      ]
+    },
+    "source_snapshot_ref": {"type": "string", "minLength": 1}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"reaction_state": {"const": "not_reported"}}, "required": ["reaction_state"]},
+      "then": {"properties": {"reaction_breakdown": {"type": "null"}}}
+    },
+    {
+      "if": {"properties": {"reaction_state": {"const": "empty"}}, "required": ["reaction_state"]},
+      "then": {"properties": {"reaction_breakdown": {"type": "array", "maxItems": 0}}}
+    },
+    {
+      "if": {"properties": {"reaction_state": {"const": "available"}}, "required": ["reaction_state"]},
+      "then": {"properties": {"reaction_breakdown": {"type": "array", "minItems": 1}}}
+    },
+    {
+      "if": {"properties": {"reaction_state": {"const": "current_user_excluded"}}, "required": ["reaction_state"]},
+      "then": {"properties": {"reaction_breakdown": {"type": "array"}}}
+    }
+  ],
+  "$defs": {
+    "reaction": {
+      "type": "object",
+      "required": ["kind", "key", "count"],
+      "properties": {
+        "kind": {"enum": ["emoji", "custom_emoji", "paid", "unknown"]},
+        "key": {"type": "string", "minLength": 1},
+        "count": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

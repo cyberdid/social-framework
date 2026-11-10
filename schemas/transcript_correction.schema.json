@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cyberdid.github.io/social/schemas/transcript_correction.schema.json",
+  "title": "Social Transcript Correction v1",
+  "type": "object",
+  "required": [
+    "schema_version", "correction_id", "asset_sha256", "audio_interval_ms",
+    "raw_text", "candidate_text", "correction_type", "status", "basis",
+    "materiality", "quote_safe", "created_at_utc"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "correction_id": {"type": "string", "minLength": 1},
+    "asset_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "source_locator": {"type": ["string", "null"]},
+    "audio_interval_ms": {
+      "type": "object", "required": ["start_ms", "end_ms"],
+      "properties": {
+        "start_ms": {"type": "integer", "minimum": 0},
+        "end_ms": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": false
+    },
+    "raw_asr_sha256": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"},
+    "raw_text": {"type": "string", "minLength": 1},
+    "candidate_text": {"type": ["string", "null"]},
+    "correction_type": {"enum": ["orthographic", "domain_term", "punctuation", "lexical", "speaker", "other"]},
+    "status": {"enum": ["candidate_contextual", "needs_audio_review", "verified_from_audio", "formatting_only", "rejected"]},
+    "basis": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["second_asr_hypothesis", "cross_copy_consensus", "linguistic_context", "domain_terminology", "audio_review", "human_reference_transcript", "formatting"]}},
+    "materiality": {"enum": ["low", "ordinary", "high_fact_sensitivity"]},
+    "quote_safe": {"type": "boolean"},
+    "review": {
+      "type": ["object", "null"],
+      "required": ["method", "reviewed_at_utc"],
+      "properties": {
+        "method": {"enum": ["audio_listening", "independent_reference_transcript"]},
+        "reviewed_at_utc": {"type": "string", "format": "date-time"},
+        "reviewer_id": {"type": ["string", "null"]},
+        "notes": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "created_at_utc": {"type": "string", "format": "date-time"},
+    "limitations": {"type": "array", "items": {"type": "string"}}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "verified_from_audio"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "quote_safe": {"const": true},
+          "review": {
+            "type": "object",
+            "properties": {"method": {"const": "audio_listening"}}
+          },
+          "basis": {"contains": {"const": "audio_review"}}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"enum": ["candidate_contextual", "needs_audio_review", "formatting_only", "rejected"]}}, "required": ["status"]},
+      "then": {"properties": {"quote_safe": {"const": false}}}
+    }
+  ],
+  "additionalProperties": false
+}

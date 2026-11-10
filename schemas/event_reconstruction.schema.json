@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cyberdid.github.io/social/schemas/event_reconstruction.schema.json",
+  "title": "Social conservative event reconstruction result v1",
+  "type": "object",
+  "required": ["schema_version", "as_of_utc", "provenance", "events", "candidate_links", "timelines", "temporal_relations", "unresolved", "unresolved_constraints", "limitations"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "as_of_utc": {"anyOf": [{"type": "null"}, {"type": "string", "format": "date-time", "pattern": "(Z|[+]00:00)$"}]},
+    "provenance": {
+      "type": "object",
+      "required": ["producer", "run_id", "incident_id", "git_commit", "parameters_sha256"],
+      "properties": {
+        "producer": {"type": "string", "minLength": 1},
+        "run_id": {"type": ["string", "null"]},
+        "incident_id": {"type": ["string", "null"]},
+        "git_commit": {"type": ["string", "null"]},
+        "parameters_sha256": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "events": {"type": "array", "items": {"$ref": "#/$defs/event"}},
+    "candidate_links": {"type": "array", "items": {"$ref": "#/$defs/link"}},
+    "timelines": {
+      "type": "object",
+      "required": ["physical", "communication"],
+      "properties": {
+        "physical": {"type": "array", "items": {"$ref": "#/$defs/timelineEntry"}},
+        "communication": {"type": "array", "items": {"$ref": "#/$defs/timelineEntry"}}
+      },
+      "additionalProperties": false
+    },
+    "temporal_relations": {"type": "array", "items": {"$ref": "#/$defs/temporalRelation"}},
+    "unresolved": {"type": "array", "items": {"type": "object", "required": ["event_id", "reason"], "properties": {"event_id": {"type": "string"}, "reason": {"type": "string"}}, "additionalProperties": false}},
+    "unresolved_constraints": {"type": "array", "items": {"type": "object", "required": ["event_mention_id", "target_event_mention_id", "relation", "status"], "properties": {"event_mention_id": {"type": "string"}, "target_event_mention_id": {"type": "string"}, "relation": {"const": "cannot_link"}, "status": {"const": "target_not_in_input"}}, "additionalProperties": false}},
+    "limitations": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1},
+    "contradictions": {"type": "array"}
+  },
+  "$defs": {
+    "eventTime": {
+      "type": ["object", "null"],
+      "required": ["kind", "earliest_utc", "latest_utc", "precision", "anchor_evidence_ids", "status"],
+      "properties": {
+        "kind": {"type": "string"},
+        "earliest_utc": {"anyOf": [{"type": "null"}, {"type": "string", "format": "date-time", "pattern": "(Z|[+]00:00)$"}]},
+        "latest_utc": {"anyOf": [{"type": "null"}, {"type": "string", "format": "date-time", "pattern": "(Z|[+]00:00)$"}]},
+        "precision": {"type": "string"},
+        "anchor_evidence_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "timezone_basis": {"type": ["string", "null"]},
+        "raw_value": {"type": ["string", "null"]},
+        "status": {"enum": ["bounded", "partially_bounded", "unresolved"]}
+      },
+      "additionalProperties": false
+    },
+    "event": {
+      "type": "object",
+      "required": ["schema_version", "event_id", "incident_id", "run_id", "producer", "event_mention_id", "event_kind", "predicate", "actor_entity_ids", "object_entity_ids", "place_id", "event_time", "publication_time_utc", "timeline_time_kind", "evidence_ids", "source_refs", "cannot_link_event_mention_ids", "attributed_relations", "merge_status", "limitations"],
+      "properties": {
+        "schema_version": {"const": "1.0"},
+        "event_id": {"type": "string", "minLength": 1},
+        "incident_id": {"type": ["string", "null"]},
+        "run_id": {"type": ["string", "null"]},
+        "producer": {"type": "string", "minLength": 1},
+        "event_mention_id": {"type": "string", "minLength": 1},
+        "event_kind": {"enum": ["physical", "communication"]},
+        "predicate": {"type": "string", "minLength": 1},
+        "actor_entity_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "object_entity_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "place_id": {"type": ["string", "null"]},
+        "event_time": {"$ref": "#/$defs/eventTime"},
+        "publication_time_utc": {"anyOf": [{"type": "null"}, {"type": "string", "format": "date-time", "pattern": "(Z|[+]00:00)$"}]},
+        "timeline_time_kind": {"enum": ["event_time", "publication_time", null]},
+        "evidence_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1, "uniqueItems": true},
+        "source_refs": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+        "cannot_link_event_mention_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "attributed_relations": {"type": "array"},
+        "merge_status": {"const": "unresolved_event_mention"},
+        "limitations": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1}
+      },
+      "additionalProperties": false
+    },
+    "link": {
+      "type": "object",
+      "required": ["link_id", "event_ids", "status", "basis", "limitations"],
+      "properties": {
+        "link_id": {"type": "string"},
+        "event_ids": {"type": "array", "items": {"type": "string"}, "minItems": 2, "maxItems": 2, "uniqueItems": true},
+        "status": {"const": "possible_same"},
+        "basis": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "limitations": {"type": "array", "items": {"type": "string"}, "minItems": 1}
+      },
+      "additionalProperties": false
+    },
+    "timelineEntry": {
+      "type": "object",
+      "required": ["event_id", "event_mention_id", "time_kind", "earliest_utc", "latest_utc", "evidence_ids"],
+      "properties": {
+        "event_id": {"type": "string"},
+        "event_mention_id": {"type": "string"},
+        "time_kind": {"enum": ["event_time", "publication_time"]},
+        "earliest_utc": {"type": "string", "format": "date-time", "pattern": "(Z|[+]00:00)$"},
+        "latest_utc": {"type": "string", "format": "date-time", "pattern": "(Z|[+]00:00)$"},
+        "evidence_ids": {"type": "array", "items": {"type": "string"}, "minItems": 1}
+      },
+      "additionalProperties": false
+    },
+    "temporalRelation": {
+      "type": "object",
+      "required": ["event_ids", "relation", "causal", "basis", "time_kind"],
+      "properties": {
+        "event_ids": {"type": "array", "items": {"type": "string"}, "minItems": 2, "maxItems": 2},
+        "relation": {"enum": ["before", "after", "overlaps", "unknown"]},
+        "causal": {"const": false},
+        "basis": {"type": "string"},
+        "time_kind": {"enum": ["event_time", "publication_time", "mixed"]}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

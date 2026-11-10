@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cyberdid.github.io/social/schemas/incident_spec.schema.json",
+  "title": "Social IncidentSpec v1",
+  "type": "object",
+  "required": [
+    "schema_version", "incident_id", "working_title", "scope", "location_candidates",
+    "time_window_utc", "languages", "seed_urls", "platforms", "collection_policy",
+    "privacy_policy", "allow_external_ai", "models", "budgets", "as_of_utc", "report"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "incident_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "working_title": {"type": "string", "minLength": 1},
+    "scope": {
+      "type": "object",
+      "required": ["description", "included", "excluded"],
+      "properties": {
+        "description": {"type": "string", "minLength": 1},
+        "included": {"type": "array", "items": {"type": "string"}},
+        "excluded": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "location_candidates": {"type": "array", "items": {"type": "string"}},
+    "time_window_utc": {
+      "type": "array", "minItems": 2, "maxItems": 2,
+      "items": {"$ref": "common.schema.json#/$defs/utcDateTime"}
+    },
+    "languages": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": {"enum": ["uk", "ru", "en"]}
+    },
+    "seed_urls": {
+      "type": "array", "uniqueItems": true,
+      "items": {"type": "string", "format": "uri"}
+    },
+    "platforms": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": {"enum": ["telegram", "web", "youtube", "tiktok", "instagram", "facebook", "threads", "x", "local_file"]}
+    },
+    "collection_policy": {
+      "type": "object",
+      "required": ["public_only", "allow_private_sources", "access_methods"],
+      "properties": {
+        "public_only": {"const": true},
+        "allow_private_sources": {"const": false},
+        "access_methods": {
+          "type": "array", "minItems": 1, "uniqueItems": true,
+          "items": {"enum": ["public_api", "public_web", "user_provided_public_url", "user_provided_local_file"]}
+        },
+        "notes": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "privacy_policy": {"enum": ["local_only_by_default", "explicit_external_ai_allowed"]},
+    "allow_external_ai": {"type": "boolean"},
+    "models": {
+      "type": "object",
+      "required": ["text_provider", "video_provider"],
+      "properties": {
+        "text_provider": {"type": "string", "minLength": 1},
+        "video_provider": {"type": "string", "minLength": 1},
+        "text_model_version": {"type": ["string", "null"]},
+        "video_model_version": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "budgets": {
+      "type": "object",
+      "required": ["max_queries_per_claim", "max_new_sources_per_run", "max_video_minutes_to_analyze", "max_cost_usd"],
+      "properties": {
+        "max_queries_per_claim": {"type": "integer", "minimum": 0},
+        "max_new_sources_per_run": {"type": "integer", "minimum": 0},
+        "max_video_minutes_to_analyze": {"type": "number", "minimum": 0},
+        "max_cost_usd": {"type": ["number", "null"], "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "as_of_utc": {"$ref": "common.schema.json#/$defs/utcDateTime"},
+    "report": {
+      "type": "object",
+      "required": ["allow_unresolved_sections"],
+      "properties": {"allow_unresolved_sections": {"type": "boolean"}},
+      "additionalProperties": false
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"allow_external_ai": {"const": true}}, "required": ["allow_external_ai"]},
+      "then": {"properties": {"privacy_policy": {"const": "explicit_external_ai_allowed"}}}
+    }
+  ],
+  "additionalProperties": false
+}

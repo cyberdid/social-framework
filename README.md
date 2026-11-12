@@ -3,7 +3,6 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/cyberdid/social-framework/actions/workflows/tests.yml"><img alt="Тести" src="https://github.com/cyberdid/social-framework/actions/workflows/tests.yml/badge.svg"></a>
   <img alt="Python 3.11+" src="https://img.shields.io/badge/python-3.11%2B-3776ab?logo=python&logoColor=white">
   <a href="LICENSE"><img alt="Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-2ea44f"></a>
   <img alt="MCP" src="https://img.shields.io/badge/MCP-server-7c8cff">

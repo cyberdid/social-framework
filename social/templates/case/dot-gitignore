@@ -1,0 +1,7 @@
+# конфіги агентів містять локальні шляхи; social chat створює їх заново
+.mcp.json
+.mcp-readonly.json
+opencode.json
+logs/
+data/raw/**/pages/
+__pycache__/

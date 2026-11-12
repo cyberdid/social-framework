@@ -11,6 +11,7 @@
 1. **Спершу зрозумій питання.** Прочитай `case.yaml`, `log.md`, `wiki/`. Якщо кейс уже почато, продовжуй з того місця, де зупинився попередній агент: стан кейсу лежить у файлах, а не в чаті.
 2. **Зафіксуй, що перевірятимеш, до аналізу** (`precommit`). Запиши питання, твердження і критерії «що буде правдою». Це захищає від підгонки висновків. Для швидкої довідки можна обійтися без фіксації, але в звіті тоді треба чесно це вказати.
 3. **Збирай широко, а відсіюй потім.** Колектори з MCP (`collect_*`) працюють у фоні й пишуть кожен запис на диск одразу, тож можна збирати кілька джерел паралельно. Свої колектори й аналіз пиши в `analysis/`.
+   Що вимірювати (релевантність, групи каналів, рамки, твердження, версії, актори), визначає лексикон кейсу `analysis/lexicon.yaml`; заповни його до аналізу (`methodology/02b-analysis.md`).
 4. **Перевіряй твердження.** Особливо абсурдні: шукай «зерно» і перевіряй, де його перекрутили. Записуй через `fact_check`. Вердикт: правда / ймовірно правда / частково / перекручено / не підтверджено / припущення / неправда / фейк. Спростовуй лише те, що спростовують документи: абсурдне, але підтверджене, лишається «правдою».
 5. **Займай позицію.** «Не доведено» — це не висновок. Давай гіпотези з ймовірністю і поясненням (`judgment`) і чітко відділяй «моя оцінка» від «документ». Розглядай альтернативи і те, що могло б тебе спростувати.
 6. **Думай про майбутнє.** Сформулюй 2–4 взаємовиключні сценарії з ймовірностями, індикатори для кожного і дати перевірки (`forecast_define`). Нові події записуй через `forecast_observe`: ймовірності перераховує код, а не «око».
@@ -53,9 +54,10 @@
 | Група | Інструменти |
 |---|---|
 | Стан і журнал | `case_status`, `log_entry`, `precommit` |
-| Збір (у фоні) | `collect_telegram`, `collect_youtube`, `collect_news`, `archive_url`, `job_status` |
+| Збір (у фоні) | `collect_telegram` (повні стрічки), `collect_telegram_search` (пошук у каналах), `collect_youtube`, `collect_news`, `resolve_news_articles`, `collect_gdelt`, `collect_reddit`, `fetch_commoncrawl`, `archive_site_listing`, `collect_court_news_hacc`, `wayback_versions`, `channel_liveness`, `official_declarations_ua`, `archive_url`, `job_status` |
+| Аналіз | `lexicon_template`, `analyze_corpus`, `analyze` (volume, frames, claims, mood, comments, versions, coordination, recall, media, relations, reciprocity), `make_figures` |
 | Перевірка й висновки | `fact_check`, `judgment`, `list_records` |
-| Прогнози | `forecast_define`, `forecast_observe`, `forecast_revise`, `forecast_resolve`, `forecast_state` |
+| Прогнози | `forecast_define`, `forecast_observe`, `forecast_revise`, `forecast_resolve`, `forecast_state`, `forecast_watch` |
 | Звіт | `report_build` |
 
 Власні інструменти агента (shell, Python, вебпошук) теж використовуй вільно.

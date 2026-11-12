@@ -20,6 +20,9 @@ INSTRUCTIONS = (
 
 READONLY_TOOLS = ("case_status", "list_records", "forecast_state", "job_status")
 WRITE_TOOLS = ("log_entry", "precommit", "collect_telegram", "collect_youtube", "collect_news", "archive_url", "fact_check",
+               "collect_telegram_search", "collect_gdelt", "collect_reddit", "resolve_news_articles", "fetch_commoncrawl",
+               "archive_site_listing", "collect_court_news_hacc", "wayback_versions", "channel_liveness",
+               "official_declarations_ua", "lexicon_template", "analyze_corpus", "analyze", "make_figures", "forecast_watch",
                "judgment", "forecast_define", "forecast_observe", "forecast_revise", "forecast_resolve", "report_build")
 
 
@@ -71,6 +74,116 @@ def build(case: Path, readonly: bool = False) -> MCPServer:
         return out(core.collect_news(case, queries, start, end, languages, window_days, out_name))
 
     @srv.tool()
+    def collect_telegram_search(channels: list[str], terms: list[str], start: str, end: str | None = None,
+                                relevance_regex: str | None = None, snowball_max: int = 200) -> str:
+        """Background job: keyword search inside public Telegram channels (t.me/s/<ch>?q=<term>, no login), every word
+        form as a separate term; posts matching relevance_regex (default: any term) drive a one-hop snowball.
+        Faster than full timelines when the topic is narrow. Output: data/raw/telegram_search/<UTC>/."""
+        return out(core.collect_telegram_search(case, channels, terms, start, end, relevance_regex, snowball_max))
+
+    @srv.tool()
+    def collect_gdelt(queries: list[str], start: str, end: str) -> str:
+        """Background job: media coverage list from the open GDELT DOC 2.0 API, day windows (YYYY-MM-DD).
+        Output: data/raw/gdelt/."""
+        return out(core.collect_gdelt(case, queries, start, end))
+
+    @srv.tool()
+    def collect_reddit(terms: list[str], after: str, before: str, subreddits: list[str] | None = None) -> str:
+        """Background job: Reddit posts and comments from the open Arctic Shift archive (reddit.com itself is not
+        bypassed); authors pseudonymised. Retries are safe (resumable). Output: data/raw/reddit/."""
+        return out(core.collect_reddit(case, terms, after, before, subreddits))
+
+    @srv.tool()
+    def resolve_news_articles(since: str = "", domains: list[str] | None = None, decode_only: bool = False,
+                              news_dirs: list[str] | None = None) -> str:
+        """Background job: turn Google News links from collect_news into publisher URLs and archive the article pages
+        (needs the 'news' extra). decode_only for publishers blocked in your network (then fetch_commoncrawl /
+        wayback_versions). Output: data/raw/news_articles/."""
+        return out(core.resolve_news_articles(case, since, domains, decode_only, news_dirs))
+
+    @srv.tool()
+    def fetch_commoncrawl(urls: list[str], crawls: list[str]) -> str:
+        """Background job: fetch exact URLs from the open Common Crawl archive (e.g. crawls ["CC-MAIN-2026-43"]),
+        for pages you cannot reach directly. Output: data/raw/commoncrawl/."""
+        return out(core.fetch_commoncrawl(case, urls, crawls))
+
+    @srv.tool()
+    def archive_site_listing(name: str, listing_url: str, item_regex: str, since: str,
+                             page_pattern: str = "{base}page/{n}/", max_pages: int = 200) -> str:
+        """Background job: archive every item of a news site's paginated listing since a date (topic selection later,
+        on full text). item_regex captures item URLs on a listing page. Output: data/raw/sites/<name>/."""
+        return out(core.archive_site_listing(case, name, listing_url, item_regex, since, page_pattern, max_pages))
+
+    @srv.tool()
+    def collect_court_news_hacc(since: str) -> str:
+        """Background job: official press releases of Ukraine's High Anti-Corruption Court since a date.
+        Output: data/raw/court_news_hacc/."""
+        return out(core.collect_court_news_hacc(case, since))
+
+    @srv.tool()
+    def wayback_versions(urls: list[str], save: bool = False) -> str:
+        """Background job: Wayback Machine captures per URL (and optionally request a new capture), then the text
+        difference between the earliest and latest capture — shows silent edits of statements and articles.
+        Output: data/processed/wayback/."""
+        return out(core.wayback_versions(case, urls, save))
+
+    @srv.tool()
+    def channel_liveness(channels: list[str]) -> str:
+        """Background job: is each Telegram channel public and alive (last post date, subscribers)? Use before
+        collecting. Output: data/processed/channel_liveness.jsonl."""
+        return out(core.channel_liveness(case, channels))
+
+    @srv.tool()
+    def official_declarations_ua(officials: list[dict]) -> str:
+        """Background job (Ukraine): career of PUBLIC OFFICIALS in their service role from public NAZK declarations —
+        year, workplace, position, own declared income. Each item: {key, query ("Прізвище Ім'я"), workplace_regex,
+        official_role, role_source (URL/document naming them in that role)}. Never use for private persons; assets,
+        property and family data are not extracted. Output: data/processed/declarations.json."""
+        return out(core.official_declarations_ua(case, officials))
+
+    # ---------------------------------------------------------------- analysis (reads analysis/lexicon.yaml)
+    from .analysis import coordination as A_coord, corpus as A_corpus, lexicon as A_lex, measures as A_meas, sources as A_src
+
+    @srv.tool()
+    def lexicon_template() -> str:
+        """Create analysis/lexicon.yaml (+ analysis/channel_groups.csv) — the case's measurement definitions:
+        relevance (mention/context/exclude), channel groups, periods, frames, claims, topics, versions, actors,
+        reciprocity, media origins, emotions. Fill it before looking at matches; precommit it."""
+        return out({"created": str(A_lex.write_template(case).relative_to(case))})
+
+    @srv.tool()
+    def analyze_corpus() -> str:
+        """Merge every Telegram snapshot (timelines + search) into one cleaned, de-duplicated corpus labelled from the
+        lexicon (relevance reason, group, period, language, frames, topics, claims). Run again after new collection
+        or lexicon changes. Output: data/processed/corpus/."""
+        return out(A_corpus.build(case))
+
+    @srv.tool()
+    def analyze(measure: str) -> str:
+        """Run one measure over the corpus (after analyze_corpus). measure:
+        volume (daily posts by group, top channels) | frames (shares by group x period with Wilson CIs and view shares)
+        | claims (spread of each claim: first post, groups, views, before the official document) | mood (reactions ->
+        emotions by group/topic/period) | comments (stratified sample for manual coding + repeated texts) | versions
+        (explanatory versions across posts, comments, archived pages) | coordination (copy network, synchronous copies
+        vs a permutation null) | recall (search completeness vs full timelines) | media (outlets by origin, claims in
+        headlines) | relations (actor co-mention sentences) | reciprocity (official action -> reply between bodies).
+        Outputs: data/processed/analysis/<measure>/."""
+        fn = {"volume": A_meas.volume, "frames": A_meas.frames, "claims": A_meas.claims, "mood": A_meas.mood,
+              "comments": A_meas.comment_sample, "versions": A_meas.versions, "coordination": A_coord.analyze,
+              "recall": A_src.recall, "media": A_src.media, "relations": A_src.relations, "reciprocity": A_src.reciprocity}
+        if measure not in fn:
+            raise ValueError(f"measure is one of {list(fn)}")
+        return out(fn[measure](case))
+
+    @srv.tool()
+    def make_figures(names: list[str] | None = None) -> str:
+        """Draw report figures from processed outputs into report/fig/ (PNG + PDF): volume, frames, mood, verdicts,
+        judgments, copy_network, claims_timeline, scenarios. Missing inputs are skipped with a reason. Embed them in
+        report/report.md (or .tex) and explain each one in plain words under the figure."""
+        from . import figures
+        return out(figures.make(case, names))
+
+    @srv.tool()
     def job_status(job_id: str | None = None) -> str:
         """State of background jobs (running / finished / stopped), exit codes and the last log lines."""
         return out(jobs.status(case, job_id))
@@ -107,7 +220,8 @@ def build(case: Path, readonly: bool = False) -> MCPServer:
         {"horizon": "YYYY-MM-DD",
          "scenarios": [{"id": "A", "name": "...", "p": 0.3, "summary": "...", "resolve": "criterion"}, ...],  # p sum to 1
          "indicators": [{"id": "I1", "name": "...", "window_end": "YYYY-MM-DD", "group": "g1",
-                         "p_given": {"A": 0.8, "B": 0.3, ...}, "linked_forecast": "F1"?}, ...],
+                         "p_given": {"A": 0.8, "B": 0.3, ...}, "linked_forecast": "F1"?,
+                         "measure": {...}? (automatic, see forecast_watch)}, ...],
          "forecasts": [{"id": "F1", "text": "...", "p": 0.6, "resolve_by": "YYYY-MM-DD", "resolve": "criterion"}]}
         Indicators of one group are treated as correlated (later ones count with exponent 0.5)."""
         return out(core.forecast_define(case, model))
@@ -139,6 +253,15 @@ def build(case: Path, readonly: bool = False) -> MCPServer:
         return out({k: st[k] for k in ("as_of", "scenarios", "scenario_names", "whatif", "coherence", "track_record")}
                    | {"forecasts": [{k: f.get(k) for k in ("id", "text", "p_now", "resolve_by", "status", "brier")}
                                     for f in st["forecasts"]]})
+
+    @srv.tool()
+    def forecast_watch(record: bool = True) -> str:
+        """Evaluate indicators that carry a "measure" block on news headlines (collect_news with window_days=1 keeps
+        them current): attention_below (N weeks under ratio x baseline) or share_increase (a week where a regex's share
+        of headlines >= factor x baseline). Met indicators are journaled automatically (level A); closed windows as
+        not_occurred. Run it after each news collection, then forecast_state."""
+        from .tools import forecast_watch as FW
+        return out(FW.watch(case, record))
 
     @srv.tool()
     def report_build(source: str = "report/report.md") -> str:

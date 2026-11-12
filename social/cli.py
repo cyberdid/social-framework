@@ -7,6 +7,7 @@
   social backends [--models]                    installed agents and their models
   social config --agent A --model M [--role reviewer]           defaults (~/.config/social/config.yaml)
   social setup agy                              register the Social tools in Antigravity once
+  social web [--port 8765]                      web interface in the browser
   social status | jobs | doctor | mcp
 """
 from __future__ import annotations
@@ -213,6 +214,11 @@ def cmd_doctor(args):
     print(f"{ok(CONFIG_DIR.exists())} {CONFIG_DIR} — ключі, сесії й налаштування (не в кейсі)")
 
 
+def cmd_web(args):
+    from .web.server import serve
+    serve(args.port, not args.no_browser, Path(args.case).resolve() if args.case else None)
+
+
 def cmd_mcp(args):
     from .mcp_server import main as mcp_main
     mcp_main(args.case, args.readonly)
@@ -267,6 +273,12 @@ def main(argv=None):
             p.add_argument("--tail", type=int, default=5)
         p.set_defaults(fn=fn)
     sub.add_parser("doctor", help="перевірити середовище").set_defaults(fn=cmd_doctor)
+
+    p = sub.add_parser("web", help="веб-інтерфейс у браузері")
+    p.add_argument("--port", type=int, default=8765)
+    p.add_argument("--no-browser", action="store_true")
+    p.add_argument("--case", help="додатково показати кейс поза текою кейсів")
+    p.set_defaults(fn=cmd_web)
 
     args = ap.parse_args(argv)
     args.fn(args)

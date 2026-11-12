@@ -224,7 +224,10 @@ async function openChat(id) {
     else if (r.role === "assistant") { const b = addBot(meta.agent); fillBot(b, r); }
   }
   if (rows.length === 1) renderWelcome();
-  msgs.scrollTop = msgs.scrollHeight;
+  const lastUser = [...msgs.querySelectorAll(".msg.user")].pop();  // show the start of the last exchange, not its end
+  msgs.style.scrollBehavior = "auto";
+  msgs.scrollTop = lastUser ? lastUser.offsetTop - msgs.offsetTop - 12 : msgs.scrollHeight;
+  msgs.style.scrollBehavior = "";
   document.querySelectorAll(".chat-item").forEach((el) => el.classList.toggle("active", el.dataset.id === id));
 }
 function addUser(text) {

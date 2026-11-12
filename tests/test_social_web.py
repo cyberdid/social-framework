@@ -120,3 +120,9 @@ def test_sanitizer():
                    '<img src=x onerror=1><b onclick=1>b</b><iframe src=//e></iframe></p>')
     assert "script" not in out and "onerror" not in out and "onclick" not in out and "iframe" not in out
     assert '<a href="https://e.org"' in out and "<a>x</a>" in out
+
+
+def test_render_md_lists_after_text():
+    from social.web.server import render_md
+    html = render_md("**Фактчеки**\n- перший\n- другий\n\nТекст\n1. раз\n2. два")
+    assert html.count("<li>") == 4 and "<ul>" in html and "<ol>" in html

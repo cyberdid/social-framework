@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 import mimetypes
 import os
+import re
 import secrets
 import webbrowser
 from importlib import resources
@@ -34,8 +35,13 @@ STATIC = Path(str(resources.files("social") / "web" / "static"))
 MD_EXT = ["tables", "fenced_code", "sane_lists"]
 
 
+LIST_AFTER_TEXT = re.compile(r"(?m)^((?![ \t]*(?:[-*+]|\d+[.)])[ \t]).*\S.*)\n([ \t]*(?:[-*+]|\d+[.)])[ \t])")
+
+
 def render_md(text: str) -> str:
-    return sanitize(md.markdown(text or "", extensions=MD_EXT))
+    # agents often start a list right under a text line; Markdown needs a blank line there
+    text = LIST_AFTER_TEXT.sub(r"\1\n\n\2", text or "")
+    return sanitize(md.markdown(text, extensions=MD_EXT))
 
 
 CSP_PAGE = ("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "

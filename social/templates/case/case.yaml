@@ -1,0 +1,15 @@
+# Опис кейсу. Вільна форма: агент читає цей файл першим і може доповнювати його.
+title: "{{title}}"
+question: "{{question}}"
+created: "{{created}}"
+language: {{language}}
+# період, який цікавить (ISO-дати); можна уточнити пізніше
+period:
+  start:
+  end:
+# з чого почати: канали, ключові слова, посилання, люди в службовій ролі
+seeds:
+  telegram_channels: []
+  keywords: []
+  urls: []
+notes: ""

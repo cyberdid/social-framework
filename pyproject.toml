@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "social-framework"
+dynamic = ["version"]
+description = "Evidence-aware analysis of social conflicts and information incidents, driven by the coding agent and model of your choice"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.11"
+dependencies = [
+  "mcp>=2.3,<3",
+  "pyyaml>=6",
+  "requests>=2.31",
+  "markdown>=3.5",
+]
+
+[project.optional-dependencies]
+youtube = ["yt-dlp>=2025.1.1"]
+dev = ["pytest>=8"]
+
+[project.scripts]
+social = "social.cli:main"
+
+[tool.hatch.version]
+path = "social/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["social"]
+
+[tool.hatch.build.targets.sdist]
+include = ["social", "README.md", "LICENSE", "pyproject.toml"]

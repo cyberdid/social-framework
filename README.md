@@ -1,5 +1,81 @@
 # Social
 
+**Social — аналіз інформаційного простору з агентом і моделлю на ваш вибір.** Ви розмовляєте з агентом-аналітиком так само, як у чаті. Агент збирає публічні сліди, перевіряє твердження, робить висновки з ймовірностями, будує сценарії і пише зрозумілу довідку.
+
+Думає агент: Claude Code, Codex, Antigravity або opencode, з будь-якою моделлю, яку він підтримує. Social дає йому:
+- **теку кейсу**, де зберігається весь стан, тож агента можна змінити посеред роботи;
+- **методологію** у вигляді рекомендацій;
+- **інструменти через MCP**: збір із Telegram, YouTube і Google News, архів сторінок, фактчеки, власні висновки, сценарії з оновленням за Баєсом і обліком влучань, збирання звіту.
+
+## Швидкий старт
+
+1. Встановіть хоча б одного агента і увійдіть у нього (ваша підписка або безкоштовні моделі):
+   - [Claude Code](https://docs.claude.com/en/docs/claude-code) — `claude`;
+   - [Codex CLI](https://github.com/openai/codex) — `codex`;
+   - Antigravity CLI — `agy`;
+   - [opencode](https://opencode.ai) — `opencode`, має безкоштовні й локальні моделі.
+2. Встановіть Social (потрібен [uv](https://docs.astral.sh/uv/)):
+
+   ```sh
+   uv tool install "social-framework[youtube] @ git+https://github.com/cyberdid/social-framework"
+   social doctor            # що встановлено
+   social backends --models # агенти і їхні моделі
+   ```
+
+3. Створіть кейс і почніть розмову:
+
+   ```sh
+   social new "Назва кейсу" --question "Що саме хочемо з'ясувати?"
+   cd ~/SocialCases/назва-кейсу
+   social chat                                      # аналітик за замовчуванням: Claude Code + Opus 5.5
+   social chat --agent codex --model <модель>       # або інший агент і модель
+   social chat --agent agy --model gemini-4-argon-high
+   social chat --agent opencode --model opencode/big-pickle
+   ```
+
+   Для Antigravity один раз виконайте `social setup agy`: так він дізнається про інструменти Social.
+
+### Інші команди
+
+| Команда | Що робить |
+|---|---|
+| `social ask "питання"` | один запит без інтерфейсу; відповідь зберігається в `wiki/sessions/` |
+| `social review` | червона команда: агент **іншого виробника** оскаржує висновки, фактчеки й сценарії; нічого не змінює, рецензія — у `wiki/reviews/` |
+| `social config --agent codex --model …` | агент і модель за замовчуванням |
+| `social config --role reviewer --agent agy …` | хто працює червоною командою |
+| `social status` / `social jobs` | стан кейсу і фонові збори |
+
+## Як це влаштовано
+
+```
+social chat ──► агент (Claude Code | Codex | Antigravity | opencode) + модель на вибір
+                   │  читає AGENTS.md (методологія-рекомендації) і methodology/
+                   └─► MCP-сервер social ──► тека кейсу (git)
+                         case_status, precommit, collect_telegram/youtube/news, archive_url,
+                         fact_check, judgment, forecast_define/observe/revise/resolve/state, report_build
+```
+
+- **Агент вирішує сам**, скільки збирати, які методи брати, які розділи писати. Методологія — це поради, а не рамки.
+- **Тверді межі** лише ці:
+  - тільки публічні дані;
+  - не профілювати приватних осіб і не деанонімізувати власників каналів;
+  - не змінювати сирі дані;
+  - тримати ключі поза кейсом;
+  - жодних платежів без дозволу.
+- **Стан кейсу лежить у файлах:** `case.yaml`, `log.md`, `wiki/`, `data/`, `report/`. Тому продовжити кейс може інший агент або інша модель.
+- **Попередня фіксація і сценарні моделі** комітяться в git кейсу до аналізу. Оновлення оцінок записуються в журнал з джерелом. Ймовірності перераховує код, а не «око».
+- **Агенти працюють на вашій установці та вашому вході.** Social не бачить ваших облікових даних і не потребує API-ключів.
+
+---
+
+## English
+
+Social lets you investigate information incidents with the coding agent and model of your choice (Claude Code, Codex, Antigravity, opencode). Install with `uv tool install "social-framework[youtube] @ git+https://github.com/cyberdid/social-framework"`, then `social new "Case"`, `cd` into it and `social chat --agent <agent> --model <model>`. The agent gets the methodology as recommendations (`AGENTS.md`) and case tools over MCP; `social review` runs a read-only red-team review by an agent from another vendor. The rest of this README describes the research code that ships alongside the app.
+
+---
+
+## Дослідницький код (src/)
+
 Social is a modular Python research system for evidence-aware analysis of social conflicts and information incidents from digital traces. It combines platform-specific collection, versioned snapshots, text-similarity and timing analysis, an append-only evidence ledger, bounded retrieval and rule-based claim assessment, typed event organization, local media processing, and report quality gates.
 
 This repository is the public code release that accompanies the preprint *Social: An Evidence-Grounded Framework for Automated Social Conflict and Information Incident Analysis*.

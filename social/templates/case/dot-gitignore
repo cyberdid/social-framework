@@ -5,3 +5,4 @@ opencode.json
 logs/
 data/raw/**/pages/
 __pycache__/
+data/raw/nazk/

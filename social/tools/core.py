@@ -286,3 +286,101 @@ def report_build(case: Path, source: str = "report/report.md") -> dict:
                 out["pdf_error"] = r.stderr[-1500:]
     log(case, f"звіт зібрано з {source}: {', '.join(v for k, v in out.items() if k in ('pdf', 'html'))}")
     return out
+
+
+# ------------------------------------------------------------------ more public sources (background jobs)
+def _inp(case: Path, name: str, lines: list[str], ext: str = "txt") -> Path:
+    inp = case / "data/inputs"
+    inp.mkdir(parents=True, exist_ok=True)
+    p = inp / f"{name}_{_stamp()}.{ext}"
+    p.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return p
+
+
+def _py(module: str, *args: str) -> list[str]:
+    return [sys.executable, "-m", f"social.collectors.{module}", *args]
+
+
+def collect_telegram_search(case: Path, channels: list[str], terms: list[str], start: str, end: str | None = None,
+                            relevance_regex: str | None = None, snowball_max: int = 200) -> dict:
+    ch = _inp(case, "tgsearch_channels", [c.strip().lstrip("@").removeprefix("https://t.me/").split("/")[0] for c in channels])
+    argv = _py("telegram_search", "--channels", str(ch), "--terms", *terms, "--start", start,
+               "--out", str(case / "data/raw/telegram_search" / _stamp()), "--snowball-max", str(snowball_max))
+    if end:
+        argv += ["--end", end]
+    if relevance_regex:
+        re.compile(relevance_regex)
+        argv += ["--relevance", relevance_regex]
+    return jobs.start(case, "tgsearch", argv)
+
+
+def collect_gdelt(case: Path, queries: list[str], start: str, end: str) -> dict:
+    return jobs.start(case, "gdelt", _py("gdelt", "--queries", *queries, "--start", start, "--end", end,
+                                         "--out", str(case / "data/raw/gdelt")))
+
+
+def collect_reddit(case: Path, terms: list[str], after: str, before: str, subreddits: list[str] | None = None) -> dict:
+    argv = _py("reddit", "--terms", *terms, "--after", after, "--before", before, "--out", str(case / "data/raw/reddit"))
+    if subreddits:
+        argv += ["--subreddits", *subreddits]
+    return jobs.start(case, "reddit", argv)
+
+
+def resolve_news_articles(case: Path, since: str = "", domains: list[str] | None = None, decode_only: bool = False,
+                          news_dirs: list[str] | None = None) -> dict:
+    dirs = news_dirs or [p.parent.name for p in (case / "data/raw").glob("*/items.jsonl")]
+    files = [str(case / "data/raw" / d / "items.jsonl") for d in dirs if (case / "data/raw" / d / "items.jsonl").exists()]
+    if not files:
+        raise FileNotFoundError("немає data/raw/*/items.jsonl — спершу collect_news")
+    argv = _py("news_resolve", "--gnews", *files, "--out", str(case / "data/raw/news_articles"), "--since", since)
+    if domains:
+        argv += ["--domains", *domains]
+    if decode_only:
+        argv.append("--decode-only")
+    return jobs.start(case, "articles", argv)
+
+
+def fetch_commoncrawl(case: Path, urls: list[str], crawls: list[str]) -> dict:
+    src = _inp(case, "cc_urls", [json.dumps({"url": u}) for u in urls], "jsonl")
+    return jobs.start(case, "commoncrawl", _py("commoncrawl", "--urls", str(src), "--crawls", *crawls,
+                                               "--out", str(case / "data/raw/commoncrawl")))
+
+
+def archive_site_listing(case: Path, name: str, listing_url: str, item_regex: str, since: str,
+                         page_pattern: str = "{base}page/{n}/", max_pages: int = 200) -> dict:
+    re.compile(item_regex)
+    return jobs.start(case, f"site-{slugify(name)}", _py("site_listing", "--name", name, "--listing", listing_url,
+                                                          "--page-pattern", page_pattern, "--item-regex", item_regex,
+                                                          "--since", since, "--max-pages", str(max_pages),
+                                                          "--out", str(case / "data/raw/sites" / slugify(name))))
+
+
+def collect_court_news_hacc(case: Path, since: str) -> dict:
+    return jobs.start(case, "hacc", _py("court_news_hacc", "--since", since, "--out", str(case / "data/raw/court_news_hacc")))
+
+
+def wayback_versions(case: Path, urls: list[str], save: bool = False) -> dict:
+    src = _inp(case, "wayback_urls", urls)
+    wb = case / "data/processed/wayback" / f"wayback_{_stamp()}.json"
+    wb.parent.mkdir(parents=True, exist_ok=True)
+    check = _py("wayback_check", "--sources", str(src), "--out", str(wb), *(["--save"] if save else []))
+    diff = _py("wayback_diff", "--wayback", str(wb), "--raw", str(case / "data/raw/wayback"),
+               "--out", str(wb.with_name(wb.stem + "_diff.jsonl")))
+    return jobs.start(case, "wayback", [sys.executable, "-m", "social.jobrunner_chain", "--", json.dumps([check, diff])])
+
+
+def channel_liveness(case: Path, channels: list[str]) -> dict:
+    src = _inp(case, "liveness", [c.strip().lstrip("@") for c in channels])
+    return jobs.start(case, "liveness", _py("channel_liveness", str(src), str(case / "data/processed/channel_liveness.jsonl")))
+
+
+def official_declarations_ua(case: Path, officials: list[dict]) -> dict:
+    """officials: [{key, query, workplace_regex, official_role, role_source}] — public officials in service role only."""
+    for o in officials:
+        missing = [k for k in ("key", "query", "workplace_regex", "official_role", "role_source") if not o.get(k)]
+        if missing:
+            raise ValueError(f"{o.get('key', '?')}: бракує {missing} (роль і її джерело обов'язкові: лише публічні посадовці)")
+        re.compile(o["workplace_regex"])
+    cfg = _inp(case, "officials", [json.dumps({"officials": officials}, ensure_ascii=False)], "json")
+    return jobs.start(case, "declarations", _py("declarations_ua", "--config", str(cfg), "--raw", str(case / "data/raw/nazk"),
+                                                "--out", str(case / "data/processed/declarations.json")))

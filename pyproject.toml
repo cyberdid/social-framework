@@ -16,6 +16,8 @@ dependencies = [
   "markdown>=3.5",
   "starlette>=0.37",
   "uvicorn>=0.30",
+  "numpy>=1.26",
+  "scipy>=1.11",
 ]
 
 keywords = ["osint", "information-space", "fact-checking", "mcp", "claude", "codex", "gemini", "forecasting", "ukraine"]
@@ -35,6 +37,9 @@ Preprint = "https://doi.org/10.5281/zenodo.24101594"
 
 [project.optional-dependencies]
 youtube = ["yt-dlp>=2025.1.1"]
+news = ["googlenewsdecoder>=0.1.7"]
+figures = ["matplotlib>=3.8", "networkx>=3.2", "adjustText>=1.0"]
+all = ["yt-dlp>=2025.1.1", "googlenewsdecoder>=0.1.7", "matplotlib>=3.8", "networkx>=3.2", "adjustText>=1.0"]
 dev = ["pytest>=8", "httpx>=0.27"]
 
 [project.scripts]

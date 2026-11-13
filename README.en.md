@@ -46,7 +46,7 @@ You choose the agent: **Claude Code, Codex, Antigravity (Gemini) or opencode**, 
 **2. Install Social.** You need [uv](https://docs.astral.sh/uv/):
 
 ```sh
-uv tool install "social-framework[youtube] @ git+https://github.com/cyberdid/social-framework"
+uv tool install "social-framework[all] @ git+https://github.com/cyberdid/social-framework"
 social doctor
 ```
 
@@ -109,9 +109,10 @@ flowchart LR
 | Area | Tools |
 |---|---|
 | State and log | `case_status`, `log_entry`, `precommit` |
-| Collection (background, resumable) | `collect_telegram`, `collect_youtube`, `collect_news`, `archive_url`, `job_status` |
+| Collection (background, resumable) | Telegram: `collect_telegram` (full timelines), `collect_telegram_search`, `channel_liveness` · YouTube: `collect_youtube` · media: `collect_news`, `resolve_news_articles`, `collect_gdelt`, `archive_site_listing` · Reddit: `collect_reddit` · archives: `fetch_commoncrawl`, `wayback_versions`, `archive_url` · Ukraine: `collect_court_news_hacc`, `official_declarations_ua` (service role only) · `job_status` |
+| Analysis | `lexicon_template` → `analyze_corpus` → `analyze`: volume, frames, claims, mood, comments, versions, coordination (copy network + synchrony vs chance), recall, media, relations, reciprocity · `make_figures` |
 | Checks and judgments | `fact_check`, `judgment`, `list_records` |
-| Scenarios | `forecast_define`, `forecast_observe`, `forecast_revise`, `forecast_resolve`, `forecast_state` |
+| Scenarios | `forecast_define`, `forecast_observe`, `forecast_revise`, `forecast_resolve`, `forecast_state`, `forecast_watch` (automatic indicators from headlines) |
 | Report | `report_build` |
 
 ## Hard limits

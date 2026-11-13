@@ -53,7 +53,7 @@
 **2. Social.** Потрібен [uv](https://docs.astral.sh/uv/):
 
 ```sh
-uv tool install "social-framework[youtube] @ git+https://github.com/cyberdid/social-framework"
+uv tool install "social-framework[all] @ git+https://github.com/cyberdid/social-framework"
 social doctor             # що встановлено
 ```
 
@@ -127,9 +127,10 @@ flowchart LR
 | Група | Інструменти |
 |---|---|
 | Стан і журнал | `case_status`, `log_entry`, `precommit` |
-| Збір (у фоні, з відновленням) | `collect_telegram`, `collect_youtube`, `collect_news`, `archive_url`, `job_status` |
+| Збір (у фоні, з відновленням) | Telegram: `collect_telegram` (повні стрічки), `collect_telegram_search` (пошук), `channel_liveness` · YouTube: `collect_youtube` · ЗМІ: `collect_news`, `resolve_news_articles`, `collect_gdelt`, `archive_site_listing` · Reddit: `collect_reddit` · архіви: `fetch_commoncrawl`, `wayback_versions`, `archive_url` · Україна: `collect_court_news_hacc`, `official_declarations_ua` (лише службова роль) · `job_status` |
+| Аналіз | `lexicon_template` → `analyze_corpus` → `analyze`: volume, frames, claims, mood, comments, versions, coordination (мережа копіювання + синхронність понад випадковість), recall, media, relations, reciprocity · `make_figures` |
 | Перевірка й висновки | `fact_check`, `judgment`, `list_records` |
-| Сценарії й прогнози | `forecast_define`, `forecast_observe`, `forecast_revise`, `forecast_resolve`, `forecast_state` |
+| Сценарії й прогнози | `forecast_define`, `forecast_observe`, `forecast_revise`, `forecast_resolve`, `forecast_state`, `forecast_watch` (автоматичні індикатори за заголовками) |
 | Звіт | `report_build` |
 
 Власні інструменти агента (shell, Python, вебпошук) теж доступні: свої колектори й аналіз агент пише в `analysis/`.
